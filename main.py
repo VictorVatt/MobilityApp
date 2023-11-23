@@ -9,8 +9,8 @@ class App(customtkinter.CTk):
         self.geometry("1000x650")
         self.maxsize(1000, 650)
         self.minsize(1000, 650)
-        self.user = None
         self.is_authenticated = False
+        self.user_data = None
         self.page_manager()
 
     def set_authentication(self, value):
@@ -18,7 +18,10 @@ class App(customtkinter.CTk):
         self.page_manager()
 
     def set_user(self, user):
-        self.user = user
+        self.user_data = user
+        print(f"Données utilisateur mises à jour : {self.user_data}")
+
+
     def page_manager(self):
         self.clear_page()
         if self.is_authenticated:

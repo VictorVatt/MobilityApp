@@ -22,10 +22,10 @@ class LoginPage:
 
     def login(self):
         try:
-            self.user = self.auth.sign_in_with_email_and_password(self.email.get(), self.password.get())
+            user = self.auth.sign_in_with_email_and_password(self.email.get(), self.password.get())
+            self.master.set_user(user)
             self.master.set_authentication(True)
-            self.master.set_user(self.user)
-            print(self.user)
+
         except Exception as e:
             print(e)
             self.master.set_authentication(False)
