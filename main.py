@@ -7,8 +7,7 @@ class App(customtkinter.CTk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.geometry("1000x650")
-        self.maxsize(1000, 650)
-        self.minsize(1000, 650)
+        self.set_grid()
         self.is_authenticated = False
         self.user_data = None
         self.page_manager()
@@ -30,10 +29,15 @@ class App(customtkinter.CTk):
             self.login_page = LoginPage(self)
 
 
-
     def clear_page(self):
         for widget in self.winfo_children():
             widget.destroy()
+
+
+    def set_grid(self):
+        for i in range(7):
+            self.grid_columnconfigure(i, weight=1)
+            self.grid_rowconfigure(i, weight=1)
 
 app = App()
 app.mainloop()
