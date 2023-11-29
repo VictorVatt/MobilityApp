@@ -7,8 +7,46 @@ class Test:
         self.video = video
         self.patient_email = patient_email
 
+    def set_test_parameters(self):
+        pass
+
+    def compute_test(self):
+        pass
+
+    def create_results(self):
+        pass
+
+
 class TestPage:
 
-    def __init__(self, master):
+    def __init__(self, master, patient_data):
         self.master = master
-        self.test = customtkinter.CTkLabel(self.master, text="Test")
+        self.patient_data = patient_data
+
+        self.build_page()
+
+
+
+    def build_page(self):
+        self.back_button = customtkinter.CTkButton(self.master, text="Retour", command=self.get_back)
+        self.back_button.pack()
+        self.patient_infos = customtkinter.CTkLabel(self.master, text=str(self.patient_data))
+        self.patient_infos.pack()
+
+        tab_view = customtkinter.CTkTabview(self.master)
+        tab_view.pack(expand=True, fill='both', padx=20, pady=20)
+
+        # Création des onglets pour différents tests
+        for i in range(1, 5):
+            tab_view.add(f'Test {i}')
+            # Ajout de contenu spécifique à chaque onglet
+            label = customtkinter.CTkLabel(tab_view.tab(f"Test {i}"), text=f'Contenu pour Test {i}')
+            label.pack()
+        tab_view.set("Test 1")
+
+    def get_back(self):
+        self.master.page_manager()
+
+    def get_patient_infos_by_id(self):
+        pass
+
