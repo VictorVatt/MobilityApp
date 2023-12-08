@@ -1,11 +1,16 @@
 import customtkinter
 from login import LoginPage
 from main_page import MainPage
+import firebase_admin
+from firebase_admin import credentials, firestore
+from config import config2
 
 
 class App(customtkinter.CTk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.cred = credentials.Certificate(config2)
+        firebase_admin.initialize_app(self.cred)
         self.geometry("1000x650")
         self.set_grid()
         self.is_authenticated = False
@@ -18,8 +23,6 @@ class App(customtkinter.CTk):
 
     def set_user(self, user):
         self.user_data = user
-        print(f"Données utilisateur mises à jour : {self.user_data}")
-
 
     def page_manager(self):
         self.clear_page()

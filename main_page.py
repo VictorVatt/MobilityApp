@@ -2,10 +2,14 @@ import customtkinter
 from BDD import PATIENTS_LIST
 from PIL import Image
 from TestPage import TestPage
+from firebase_admin import firestore
+
 
 class MainPage:
     def __init__(self, master):
         self.master = master
+        self.db = firestore.client()
+        self.patient_list = self.get_all_patients()
         self.build_page()
 
     def build_page(self):
@@ -13,12 +17,17 @@ class MainPage:
         self.profile_name.grid(row=0, column=1, columnspan=5, sticky="NSEW", pady=(30, 15))
         self.build_patient_list()
 
-
     def get_all_patients(self):
-        pass
+        users_ref = self.db.collection(f'users/{self.master.user_data["localId"]}/patients')
+        docs = users_ref.stream()
+        patient_list = []
+        for doc in docs:
+            patient = doc.to_dict()
+            patient_list.append(patient)
+        return patient_list
 
     def build_patient_list(self):
-        patient_noms = [f"{patient['name']} {patient['surname']} id:{str(patient['id'])}" for patient in PATIENTS_LIST]
+        patient_noms = [f"{patient['nom']} {patient['prénom']}" for patient in self.patient_list]
         self.patient_list = PatientList(self.master)
         for i, patient in enumerate(patient_noms):
             self.patient_card = PatientCard(self.patient_list)
