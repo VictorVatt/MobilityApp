@@ -18,7 +18,7 @@ class MainPage:
         self.build_patient_list()
 
     def get_all_patients(self):
-        users_ref = self.db.collection(f'users/{self.master.user_data["localId"]}/patients')
+        users_ref = self.db.collection(f'users/AnJvInV7mfejctdwJk2geWJZ0Q72/patients')
         docs = users_ref.stream()
         patient_list = []
         for doc in docs:
@@ -27,7 +27,7 @@ class MainPage:
         return patient_list
 
     def build_patient_list(self):
-        patient_noms = [f"{patient['nom']} {patient['prénom']}" for patient in self.patient_list]
+        patient_noms = [f"{patient['nom']} {patient['prenom']}" for patient in self.patient_list]
         self.patient_list = PatientList(self.master)
         for i, patient in enumerate(patient_noms):
             self.patient_card = PatientCard(self.patient_list)

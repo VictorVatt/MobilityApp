@@ -1,6 +1,7 @@
 import customtkinter
 import pyrebase
 from config import config
+from PIL import Image
 
 
 class LoginPage:
@@ -19,6 +20,9 @@ class LoginPage:
         self.password.pack(pady=(5, 20))
         self.login_button = customtkinter.CTkButton(self.master, text="Login", command=self.login, width=400, font=("", 16), height=35)
         self.login_button.pack(pady=(20, 10))
+        self.logo = customtkinter.CTkImage(light_image=Image.open("./assets/logo.png"), size=(350, 350))
+        self.logo_label = customtkinter.CTkLabel(self.master, image=self.logo, text="")
+        self.logo_label.pack()
 
     def login(self):
         try:
