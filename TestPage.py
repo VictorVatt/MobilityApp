@@ -1,4 +1,7 @@
+import cv2
 import customtkinter
+import threading
+from PIL import Image, ImageTk
 
 class Test:
     def __init__(self, test_name, video, ID, patient_email):
@@ -22,10 +25,7 @@ class TestPage:
     def __init__(self, master, patient_data):
         self.master = master
         self.patient_data = patient_data
-
         self.build_page()
-
-
 
     def build_page(self):
         self.back_button = customtkinter.CTkButton(self.master, text="Retour", command=self.get_back)
@@ -47,6 +47,11 @@ class TestPage:
     def get_back(self):
         self.master.page_manager()
 
-    def get_patient_infos_by_id(self):
-        pass
 
+
+
+class VideoPlayer:
+    def __init__(self, url, master):
+        self.video_url = url
+        self.master = master
+        self.video_capture = cv2.VideoCapture(self.video_url)
