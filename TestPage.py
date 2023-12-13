@@ -22,9 +22,10 @@ class Test:
 
 class TestPage:
 
-    def __init__(self, master, patient_data):
+    def __init__(self, master, patient_data, video_data):
         self.master = master
         self.patient_data = patient_data
+        self.video_data = video_data
         self.build_page()
 
     def build_page(self):
@@ -40,7 +41,7 @@ class TestPage:
         for i in range(1, 5):
             tab_view.add(f'Test {i}')
             # Ajout de contenu spécifique à chaque onglet
-            label = customtkinter.CTkLabel(tab_view.tab(f"Test {i}"), text=f'Contenu pour Test {i}')
+            label = customtkinter.CTkLabel(tab_view.tab(f"Test {i}"), text=self.video_data)
             label.pack()
         tab_view.set("Test 1")
 
