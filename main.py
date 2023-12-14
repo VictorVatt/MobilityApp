@@ -13,6 +13,7 @@ class App(customtkinter.CTk):
         firebase_admin.initialize_app(self.cred)
         self.geometry("1000x650")
         self.set_grid()
+        self.video_loaded = False
         self.is_authenticated = False
         self.user_data = None
         self.page_manager()
