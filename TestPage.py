@@ -26,6 +26,8 @@ class TestPage:
         self.master = master
         self.patient_data = patient_data
         self.video_data = video_data
+        self.current_video_player = None
+        self.video_players = {}
         self.build_page()
 
     def build_page(self):
@@ -34,29 +36,30 @@ class TestPage:
         self.patient_infos = customtkinter.CTkLabel(self.master, text=str(self.patient_data))
         self.patient_infos.pack()
 
-        self.tab_view = customtkinter.CTkTabview(self.master)
-        self.tab_view.pack(expand=True, fill='both', padx=20, pady=20)
-
-        # Création des onglets pour différents tests
-
         for i in range(self.get_unique(self.video_data)):
-
             tab_name = self.video_data[i]["test"]
-            print(tab_name)
-            self.tab_view.add(tab_name)
 
-            self.video_player = VideoPlayer(self.tab_view.tab(tab_name), self.video_data[i]['videoURL'])
+            # Création d'un bouton pour chaque test
+            button = customtkinter.CTkButton(self.master, text=tab_name, command=lambda name=tab_name: self.show_video(name))
+            button.pack()
 
-        if self.get_unique(self.video_data) > 1:
-            self.tab_view.bind('<<NotebookTabChanged>>', self.on_tab_change)
-        else:
-            self.video_player.start_video()
-    def on_tab_change(self, event=None):
-        selected_tab = self.tab_view.index("current")
-        if selected_tab == 1:  # Index de l'onglet vidéo
-            self.video_player.start_video()
-        else:
-            self.video_player.stop_video()
+            # Création d'un VideoPlayer pour chaque vidéo
+            frame = customtkinter.CTkFrame(self.master)
+            video_player = VideoPlayer(frame, self.video_data[i]['videoURL'])
+            self.video_players[tab_name] = (frame, video_player)
+
+    def show_video(self, name):
+        # Arrêter la vidéo courante
+        if self.current_video_player:
+            self.current_video_player[1].stop_video()
+            self.current_video_player[0].pack_forget()
+
+        # Afficher la nouvelle vidéo
+        frame, video_player = self.video_players[name]
+        frame.pack(expand=True, fill='both')
+        video_player.start_video()
+        self.current_video_player = (frame, video_player)
+
 
     def get_back(self):
         self.master.page_manager()
@@ -75,27 +78,34 @@ class VideoPlayer:
         self.master = master
         self.video_capture = cv2.VideoCapture(self.video_url)
 
-        self.video_label = customtkinter.CTkLabel(self.master, image=None)
+        self.video_label = customtkinter.CTkLabel(self.master, text="")
         self.video_label.pack(padx=10, pady=10)
 
         self.playing = False
         self.thread = None
 
     def play_video_loop(self):
-        while self.playing:
-            success, frame = self.video_capture.read()
-            if success:
-                # Vérifiez si le label existe toujours
-                if self.video_label.winfo_exists():
-                    cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-                    img = Image.fromarray(cv2image)
-                    imgtk = ImageTk.PhotoImage(image=img)
-                    self.video_label.configure(image=imgtk)
-                    self.video_label.image = imgtk
-                else:
-                    break  # Arrêtez la boucle si le label n'existe plus
+        if not self.playing:
+            return  # Arrêtez la lecture si le drapeau playing est False
+
+        success, frame = self.video_capture.read()
+        if success:
+            if self.video_label.winfo_exists():
+                cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+                img = Image.fromarray(cv2image)
+                imgtk = ImageTk.PhotoImage(image=img)
+                self.video_label.configure(image=imgtk)
+                self.video_label.image = imgtk
+
+                # Planifiez la prochaine mise à jour
+                self.video_label.after(33, self.play_video_loop)
             else:
-                self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                # Si le label n'existe plus, arrêtez la boucle
+                self.playing = False
+        else:
+            # Si la lecture de la vidéo est terminée, rembobinez
+            self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            self.video_label.after(33, self.play_video_loop)
 
     def start_video(self):
         if not self.playing:
@@ -107,3 +117,6 @@ class VideoPlayer:
         self.playing = False
         if self.thread is not None:
             self.thread.join()
+            self.thread = None
+        if self.video_capture.isOpened():
+            self.video_capture.release()

@@ -58,7 +58,6 @@ class MainPage:
         self.patient_list_component.grid(row=1, rowspan=5,column=1, columnspan=5, sticky="NSEW")
 
 
-
 class PatientList(customtkinter.CTkScrollableFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
