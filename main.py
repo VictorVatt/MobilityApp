@@ -12,6 +12,8 @@ class App(customtkinter.CTk):
         self.cred = credentials.Certificate(config2)
         firebase_admin.initialize_app(self.cred)
         self.geometry("1000x650")
+        self.title("DigiKineApp")
+        self.iconbitmap("./assets/icone.ico")
         self.set_grid()
         self.video_loaded = False
         self.is_authenticated = False
@@ -44,5 +46,6 @@ class App(customtkinter.CTk):
             self.grid_rowconfigure(i, weight=1)
 
 customtkinter.set_default_color_theme("green")
+customtkinter.set_appearance_mode("light")
 app = App()
 app.mainloop()

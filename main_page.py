@@ -16,7 +16,9 @@ class MainPage:
     def build_page(self):
         self.profile_name = customtkinter.CTkLabel(self.master, text=f"Bonjour {self.master.user_data['email']} !", font=("", 30))
         self.profile_name.grid(row=0, column=1, columnspan=5, sticky="NSEW", pady=(30, 15))
+        self.signout_button = customtkinter.CTkButton(self.master, text="Se déconnecter", command=lambda: self.master.set_authentication(False), font=("", 16), height=35)
         self.build_patient_list()
+        self.signout_button.grid(row=0, column=0, columnspan=2, pady=(30, 15))
 
     def get_all_patients(self):
         infos_patients = []
