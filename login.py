@@ -12,14 +12,24 @@ class LoginPage:
         self.display_login()
 
     def display_login(self):
-        self.label = customtkinter.CTkLabel(self.master, text="Bienvenue, connectez-vous ! ",font=("", 25), text_color="white")
-        self.label.pack(pady=(50, 0))
-        self.email = customtkinter.CTkEntry(self.master, placeholder_text="Email", width=300, font=("", 16))
-        self.email.pack(pady=(150, 5))
-        self.password = customtkinter.CTkEntry(self.master, placeholder_text="Password", show="*", width=300, font=("", 16))
-        self.password.pack(pady=(5, 20))
-        self.login_button = customtkinter.CTkButton(self.master, text="Login", command=self.login, width=400, font=("", 16), height=35)
-        self.login_button.pack(pady=(20, 10))
+        self.container = customtkinter.CTkFrame(self.master, corner_radius=10)
+        self.container.configure(fg_color="white")
+        [self.container.grid_rowconfigure(i, weight=1) for i in range(7)]
+        [self.container.grid_columnconfigure(i, weight=1) for i in range(9)]
+        self.label = customtkinter.CTkLabel(self.container, text="Bienvenue, connectez-vous ! ", font=("", 30),
+                                            text_color="black")
+        self.label.grid(column=1, columnspan=7, sticky="nsew", pady=(10, 0))
+        self.image_profile = customtkinter.CTkImage(light_image=Image.open("./assets/loginImage.png"),
+                                                    dark_image=Image.open("./assets/loginImage.png"), size=(300,300))
+        self.image_label = customtkinter.CTkLabel(self.container, image=self.image_profile, text="")
+        self.image_label.grid(row=1, rowspan=5, column=0, columnspan=4, pady=(5, 0))
+        self.email = customtkinter.CTkEntry(self.container, placeholder_text="Email", font=("", 22))
+        self.email.grid(row=2, column=5, columnspan=3, sticky="ew")
+        self.password = customtkinter.CTkEntry(self.container, placeholder_text="Password", show="*", font=("", 22))
+        self.password.grid(row=3, column=5, columnspan=3, sticky="ew")
+        self.login_button = customtkinter.CTkButton(self.container, text="Login", command=self.login, font=("", 16), height=35)
+        self.login_button.grid(row=4, column=5, columnspan=3, sticky="ew")
+        self.container.grid(row=1, column=1, columnspan=5, rowspan=5, sticky="NSEW")
 
     def login(self):
         try:

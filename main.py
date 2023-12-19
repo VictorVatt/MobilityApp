@@ -43,5 +43,6 @@ class App(customtkinter.CTk):
             self.grid_columnconfigure(i, weight=1)
             self.grid_rowconfigure(i, weight=1)
 
+customtkinter.set_default_color_theme("green")
 app = App()
 app.mainloop()
