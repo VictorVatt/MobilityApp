@@ -1,8 +1,10 @@
 import customtkinter
-from BDD import PATIENTS_LIST
+import threading
 from PIL import Image
 from TestPage import TestPage
 from firebase_admin import firestore
+import time
+
 
 
 class MainPage:
@@ -12,6 +14,7 @@ class MainPage:
         self.patient_list = self.get_all_patients()
         self.video_data = self.get_videos_datas()
         self.build_page()
+        self.start_compute()
 
     def build_page(self):
         self.profile_name = customtkinter.CTkLabel(self.master, text=f"Bonjour {self.master.user_data['email']} !", font=("", 30))
@@ -19,6 +22,11 @@ class MainPage:
         self.signout_button = customtkinter.CTkButton(self.master, text="Se déconnecter", command=lambda: self.master.set_authentication(False), font=("", 16), height=35)
         self.build_patient_list()
         self.signout_button.grid(row=0, column=0, columnspan=2, pady=(30, 15))
+        self.status_label = customtkinter.CTkLabel(self.master, text="En attente de chargement")
+        self.status_label.grid(row=0, column=5, columnspan=2, pady=(0, 15))
+        self.progress_bar = customtkinter.CTkProgressBar(self.master)
+        self.progress_bar.set(0)
+        self.progress_bar.grid(row=0, column=5, columnspan=2, pady=(30, 15))
 
     def get_all_patients(self):
         infos_patients = []
@@ -57,9 +65,29 @@ class MainPage:
             self.image_profile = customtkinter.CTkImage(light_image=Image.open("./assets/patient_icon.png"), dark_image=Image.open("./assets/patient_icon.png"), size=(50, 50))
             self.image_label = customtkinter.CTkLabel(self.patient_card, image=self.image_profile, text="")
             self.image_label.grid(row=0,column=0, pady=(5, 0), padx=(5, 30))
+
         self.patient_list_component.grid(row=1, rowspan=5,column=1, columnspan=5, sticky="NSEW")
 
+    def start_compute(self):
+        length = len(self.video_data)
+        thread = threading.Thread(target=self.compute_video)
+        thread.start()
 
+    def compute_video(self):
+        length = len(self.video_data)
+        for i, video in enumerate(self.video_data, start=1):
+            time.sleep(1)
+            self.update_progress(i, length)
+
+        self.on_data_loaded()
+
+    def update_progress(self, current_index, length):
+        progress = current_index / length
+        self.progress_bar.set(progress)
+        self.status_label.configure(text=f"Chargement {current_index}/{length}")
+
+    def on_data_loaded(self):
+        self.status_label.configure(text="Chargement terminé")
 class PatientList(customtkinter.CTkScrollableFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
