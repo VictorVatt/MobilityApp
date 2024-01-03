@@ -2,7 +2,7 @@ import customtkinter
 from login import LoginPage
 from main_page import MainPage
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials
 from config import config2
 
 

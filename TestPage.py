@@ -3,23 +3,6 @@ import customtkinter
 import threading
 from PIL import Image, ImageTk
 
-class Test:
-    def __init__(self, test_name, video, ID, patient_email):
-        self.id = ID
-        self.test_name = test_name
-        self.video = video
-        self.patient_email = patient_email
-
-    def set_test_parameters(self):
-        pass
-
-    def compute_test(self):
-        pass
-
-    def create_results(self):
-        pass
-
-
 class TestPage:
 
     def __init__(self, master, patient_data, video_data):
@@ -33,7 +16,8 @@ class TestPage:
     def build_page(self):
         self.back_button = customtkinter.CTkButton(self.master, text="Retour", command=self.get_back)
         self.back_button.pack()
-        self.patient_infos = customtkinter.CTkLabel(self.master, text=str(self.patient_data))
+        infos_string = f"Prénom : {self.patient_data['infos_perso'].get('prenom')} | Nom : {self.patient_data['infos_perso'].get('nom')} | Envergure :{self.patient_data['infos_perso'].get('envergure')}"
+        self.patient_infos = customtkinter.CTkLabel(self.master, text=infos_string)
         self.patient_infos.pack()
 
         for i in range(self.get_unique(self.video_data)):

@@ -3,8 +3,8 @@ import threading
 from PIL import Image
 from TestPage import TestPage
 from firebase_admin import firestore
-import time
-
+from Test import FlexionTest
+import numpy as np
 
 
 class MainPage:
@@ -47,7 +47,9 @@ class MainPage:
         videos_url = []
         for doc in docs:
             video = doc.to_dict()
+            video["id"] = doc.id
             videos_url.append(video)
+
         return videos_url
 
     def filter_video_infos(self, video_list_infos, email):
@@ -71,15 +73,36 @@ class MainPage:
     def start_compute(self):
         length = len(self.video_data)
         thread = threading.Thread(target=self.compute_video)
+        self.disable_patient_cards()
         thread.start()
 
     def compute_video(self):
         length = len(self.video_data)
-        for i, video in enumerate(self.video_data, start=1):
-            time.sleep(1)
-            self.update_progress(i, length)
+        with open("computed.txt", "r+") as file:
+            existing_ids = set(file.read().splitlines())
+
+            for i, video in enumerate(self.video_data):
+
+                if video["id"] not in existing_ids:
+                    match video["test"]:
+                        case "Test flexion avant":
+                            processor = FlexionTest()
+                            distanceDP, PosPied, PosMoyenneMajeurs = processor.process_video(video["videoURL"], envergure=192)
+                            distance = np.array(distanceDP)
+                            print(f"-----------------Vidéo {video['id']}---------------")
+                            print(distanceDP)
+
+                        case "Test flexion lateral droit":
+                            pass
+
+                        case "Test flexion lateral gauche":
+                            pass
+
+                    file.write(video["id"] + "\n")
+            self.update_progress(i+1, length)
 
         self.on_data_loaded()
+
 
     def update_progress(self, current_index, length):
         progress = current_index / length
@@ -88,6 +111,19 @@ class MainPage:
 
     def on_data_loaded(self):
         self.status_label.configure(text="Chargement terminé")
+        self.enable_patient_cards()
+
+    def disable_patient_cards(self):
+        for card in self.patient_list_component.winfo_children():
+            if isinstance(card, PatientCard):
+                card.set_clickable(False)
+
+    def enable_patient_cards(self):
+        for card in self.patient_list_component.winfo_children():
+            if isinstance(card, PatientCard):
+                card.set_clickable(True)
+
+
 class PatientList(customtkinter.CTkScrollableFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -101,6 +137,13 @@ class PatientList(customtkinter.CTkScrollableFrame):
         for widget in self.winfo_children():
             widget.destroy()
 
+    def disable(self):
+        for widget in self.winfo_children():
+            widget.configure(state="disable")
+
+    def enable(self):
+        for widget in self.winfo_children():
+            widget.configure(state="enable")
 
 class PatientCard(customtkinter.CTkFrame):
 
@@ -111,7 +154,6 @@ class PatientCard(customtkinter.CTkFrame):
         self.configure(fg_color="white")
         self.bind("<Enter>", self.on_enter)
         self.bind("<Leave>", self.on_leave)
-        self.bind("<Button-1>", self.on_click)
 
     def get_infos(self):
         return self.infos
@@ -136,3 +178,9 @@ class PatientCard(customtkinter.CTkFrame):
         self.app.clear_page()
 
         self.test_page = TestPage(self.app, self.get_infos(), self.get_video_data())
+
+    def set_clickable(self, clickable):
+        if clickable:
+            self.bind("<Button-1>", self.on_click)  # Lier l'événement de clic à la méthode on_click
+        else:
+            self.unbind("<Button-1>")  # Détacher l'événement de clic pour le désactiver
