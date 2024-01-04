@@ -88,15 +88,16 @@ class MainPage:
                             patient_ref = self.db.collection('users').document(self.master.user_data['localId']).collection('patients').document(video["patient"])
                             patient_info = patient_ref.get().to_dict()
                             processor = FlexionTest()
+                            print(patient_info)
                             distanceDP, PosPied, PosMoyenneMajeurs = processor.process_video(video["videoURL"], envergure=int(patient_info["envergure"]))
                             resultats = {"distanceDP" : distanceDP, "PosPied" : PosPied, "PosMoyenneMajeurs": PosMoyenneMajeurs}
                             self.write_compute_results_in_db(video["patient"], "Test flexion avant", resultats)
 
-                        case "Test flexion lateral droit":
-                            pass
+                        case "Test flexion latéral droit":
+                            print("Calcul flexion lateral droit")
 
-                        case "Test flexion lateral gauche":
-                            pass
+                        case "Test flexion latéral gauche":
+                            print("Calcul flexion lateral gauche")
 
                     file.write(video["id"] + "\n")
             self.update_progress(i+1, length)

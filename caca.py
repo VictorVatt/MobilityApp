@@ -16,22 +16,28 @@ class TestPage:
 
     def build_page(self):
         self.back_button = customtkinter.CTkButton(self.master, text="Retour", command=self.get_back)
-        self.back_button.grid(row=0, column=0, sticky="nw", pady=(10, 0), padx=(10, 0))
+        self.back_button.grid(row=0, column=0, columnspan=2, pady=(10, 10))
         infos_string = f"Prénom : {self.patient_data['infos_perso'].get('prenom')} | Nom : {self.patient_data['infos_perso'].get('nom')} | Envergure :{self.patient_data['infos_perso'].get('envergure')}"
         self.patient_infos = customtkinter.CTkLabel(self.master, text=infos_string, font=("", 24))
-        self.patient_infos.grid(row=0, column=1, columnspan=4, sticky="new")
+        self.patient_infos.grid(row=0, column=3, sticky="NSEW", pady=(10, 10))
+        for i in range(7):  # Assuming 7 rows and columns
+            self.master.grid_rowconfigure(i, weight=0)
+            self.master.grid_columnconfigure(i, weight=0)
 
-        for i in range(self.get_unique(self.video_data)):
-            tab_name = self.video_data[i]["test"]
+            separator = ttk.Separator(self.master, orient='horizontal')
+            separator.grid(row=0, column=1, columnspan=5, sticky='ew', pady=(75, 10))  # 'ew' signifie 'east-west' pour s'étendre horizontalement
 
-            # Création d'un bouton pour chaque test
-            button = customtkinter.CTkButton(self.master, text=tab_name, command=lambda name=tab_name: self.show_video(name))
-            button.grid(row=1, column=2+i, sticky="new")
+            for i in range(self.get_unique(self.video_data)):
+                tab_name = self.video_data[i]["test"]
 
-            # Création d'un VideoPlayer pour chaque vidéo
-            frame = customtkinter.CTkFrame(self.master)
-            video_player = VideoPlayer(frame, self.video_data[i]['videoURL'])
-            self.video_players[tab_name] = (frame, video_player)
+                # Création d'un bouton pour chaque test
+                button = customtkinter.CTkButton(self.master, text=tab_name, command=lambda name=tab_name: self.show_video(name))
+                button.grid(row=1, column=3, stick="N")
+
+                # Création d'un VideoPlayer pour chaque vidéo
+                frame = customtkinter.CTkFrame(self.master)
+                video_player = VideoPlayer(frame, self.video_data[i]['videoURL'])
+                self.video_players[tab_name] = (frame, video_player)
 
     def show_video(self, name):
         # Arrêter la vidéo courante
@@ -41,7 +47,7 @@ class TestPage:
 
         # Afficher la nouvelle vidéo
         frame, video_player = self.video_players[name]
-        frame.grid(row=2, column=0, columnspan = 7, rowspan=6, sticky="NSEW", padx=5, pady=(10, 5 ))
+        frame.grid(row=2, column=0, columnspan = 7, rowspan=6, sticky="NSEW", padx=5, pady=(10, 5))
         video_player.start_video()
         self.current_video_player = (frame, video_player)
 
