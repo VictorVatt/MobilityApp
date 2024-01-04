@@ -74,6 +74,7 @@ class VideoPlayer:
 
         success, frame = self.video_capture.read()
         if success:
+            frame = cv2.resize(frame, None, fx=0.35, fy=0.35, interpolation=cv2.INTER_AREA)
             if self.video_label.winfo_exists():
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
                 img = Image.fromarray(cv2image)

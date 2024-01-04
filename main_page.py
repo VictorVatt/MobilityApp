@@ -82,15 +82,15 @@ class MainPage:
             existing_ids = set(file.read().splitlines())
 
             for i, video in enumerate(self.video_data):
-
                 if video["id"] not in existing_ids:
                     match video["test"]:
                         case "Test flexion avant":
+                            patient_ref = self.db.collection('users').document(self.master.user_data['localId']).collection('patients').document(video["patient"])
+                            patient_info = patient_ref.get().to_dict()
                             processor = FlexionTest()
-                            distanceDP, PosPied, PosMoyenneMajeurs = processor.process_video(video["videoURL"], envergure=192)
-                            distance = np.array(distanceDP)
-                            print(f"-----------------Vidéo {video['id']}---------------")
-                            print(distanceDP)
+                            distanceDP, PosPied, PosMoyenneMajeurs = processor.process_video(video["videoURL"], envergure=int(patient_info["envergure"]))
+                            resultats = {"distanceDP" : distanceDP, "PosPied" : PosPied, "PosMoyenneMajeurs": PosMoyenneMajeurs}
+                            self.write_compute_results_in_db(video["patient"], "Test flexion avant", resultats)
 
                         case "Test flexion lateral droit":
                             pass
@@ -102,6 +102,14 @@ class MainPage:
             self.update_progress(i+1, length)
 
         self.on_data_loaded()
+
+    def write_compute_results_in_db(self, patientID, testType, results):
+        doc_ref = (self.db.collection("users")
+                   .document(self.master.user_data['localId'])
+                   .collection("testResults")
+                   .document(patientID)
+                   .collection(testType)).document()
+        doc_ref.set(results)
 
 
     def update_progress(self, current_index, length):

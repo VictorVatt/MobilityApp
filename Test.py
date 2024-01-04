@@ -70,5 +70,6 @@ class FlexionTest:
                 self.positions_moyennes_majeurs.append(position_moyenne)
 
 
+        self.positions_moyennes_majeurs = [coord_frame[1] for coord_frame in self.positions_moyennes_majeurs]
         cap.release()
         return self.distance_doigts_Pieds_cm, self.positions_pied, self.positions_moyennes_majeurs
