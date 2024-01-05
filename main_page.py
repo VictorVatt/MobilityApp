@@ -4,6 +4,7 @@ from PIL import Image
 from TestPage import TestPage
 from firebase_admin import firestore
 from Test import FlexionTest
+from LateralFlexionTest import LeftFlexionTest, RightFlexionTest
 import numpy as np
 
 
@@ -80,7 +81,7 @@ class MainPage:
         length = len(self.video_data)
         with open("computed.txt", "r+") as file:
             existing_ids = set(file.read().splitlines())
-
+            length = len(self.video_data)
             for i, video in enumerate(self.video_data):
                 if video["id"] not in existing_ids:
                     match video["test"]:
@@ -88,17 +89,26 @@ class MainPage:
                             patient_ref = self.db.collection('users').document(self.master.user_data['localId']).collection('patients').document(video["patient"])
                             patient_info = patient_ref.get().to_dict()
                             processor = FlexionTest()
-                            print(patient_info)
+
                             distanceDP, PosPied, PosMoyenneMajeurs = processor.process_video(video["videoURL"], envergure=int(patient_info["envergure"]))
                             resultats = {"distanceDP" : distanceDP, "PosPied" : PosPied, "PosMoyenneMajeurs": PosMoyenneMajeurs}
                             self.write_compute_results_in_db(video["patient"], "Test flexion avant", resultats)
 
                         case "Test flexion latéral droit":
-                            print("Calcul flexion lateral droit")
+                            patient_ref = self.db.collection('users').document(self.master.user_data['localId']).collection('patients').document(video["patient"])
+                            patient_info = patient_ref.get().to_dict()
+                            processor = RightFlexionTest()
+
+                            distanceDP, PosPied, PosMoyenneMajeurs = processor.process_video(video["videoURL"],envergure=int(patient_info["envergure"]))
+                            resultats = {"distanceDP": distanceDP, "PosPied": PosPied,
+                                         "PosMoyenneMajeurs": PosMoyenneMajeurs}
+
+                            self.write_compute_results_in_db(video["patient"], "Test flexion latéral droit", resultats)
 
                         case "Test flexion latéral gauche":
                             print("Calcul flexion lateral gauche")
 
+                    self.update_progress(i, length)
                     file.write(video["id"] + "\n")
             self.update_progress(i+1, length)
 
