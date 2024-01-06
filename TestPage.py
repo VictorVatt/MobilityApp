@@ -11,9 +11,9 @@ class TestPage:
         self.master = master
         self.db = firestore.client()
         self.patient_data = patient_data
+        self.video_data = video_data
         self.results = self.get_tests_results_in_db()
         print(self.results)
-        self.video_data = video_data
         self.current_video_player = None
         self.video_players = {}
         self.build_page()
@@ -62,14 +62,14 @@ class TestPage:
         return len(unique_values)
 
     def get_tests_results_in_db(self):
-        tests = ["Test flexion avant", "Test flexion latéral droit", "Test flexion latéral gauche"]
-        results = {}
-        for test in tests:
-            results_ref = self.db.collection("users").document(self.patient_data["id"]).collection("testResults").document(self.patient_data["email"]).collection(test)
+        tests_results = {}
+        for test in self.video_data:
+            results_ref = self.db.collection("users").document(self.patient_data["id"]).collection("testResults").document(self.patient_data["email"]).collection(test["test"])
             docs = results_ref.stream()
             for doc in docs:
-                results[test] = doc.to_dict()
-        return results
+                tests_results[test["test"]] = doc.to_dict()
+
+        return tests_results
 
 class VideoPlayer:
     def __init__(self, master, url):
