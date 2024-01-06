@@ -2,13 +2,17 @@ import cv2
 import customtkinter
 import threading
 from PIL import Image, ImageTk
+from firebase_admin import firestore
 from tkinter import ttk
 
 class TestPage:
 
     def __init__(self, master, patient_data, video_data):
         self.master = master
+        self.db = firestore.client()
         self.patient_data = patient_data
+        self.results = self.get_tests_results_in_db()
+        print(self.results)
         self.video_data = video_data
         self.current_video_player = None
         self.video_players = {}
@@ -42,6 +46,7 @@ class TestPage:
         # Afficher la nouvelle vidéo
         frame, video_player = self.video_players[name]
         frame.grid(row=2, column=0, columnspan = 7, rowspan=6, sticky="NSEW", padx=5, pady=(10, 5 ))
+        video_player.reset_video()
         video_player.start_video()
         self.current_video_player = (frame, video_player)
 
@@ -56,6 +61,15 @@ class TestPage:
 
         return len(unique_values)
 
+    def get_tests_results_in_db(self):
+        tests = ["Test flexion avant", "Test flexion latéral droit", "Test flexion latéral gauche"]
+        results = {}
+        for test in tests:
+            results_ref = self.db.collection("users").document(self.patient_data["id"]).collection("testResults").document(self.patient_data["email"]).collection(test)
+            docs = results_ref.stream()
+            for doc in docs:
+                results[test] = doc.to_dict()
+        return results
 
 class VideoPlayer:
     def __init__(self, master, url):
@@ -96,6 +110,13 @@ class VideoPlayer:
             self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
             self.video_label.after(33, self.play_video_loop)
 
+    def reset_video(self):
+        """ Remettre à zéro la vidéo sans libérer la capture vidéo. """
+        if self.video_capture.isOpened():
+            self.video_capture.release()
+            self.video_capture = cv2.VideoCapture(self.video_url)
+            self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
     def start_video(self):
         if not self.playing:
             self.playing = True
@@ -107,5 +128,3 @@ class VideoPlayer:
         if self.thread is not None:
             self.thread.join()
             self.thread = None
-        if self.video_capture.isOpened():
-            self.video_capture.release()

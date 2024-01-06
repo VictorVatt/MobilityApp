@@ -10,9 +10,8 @@ class RightFlexionTest(FlexionTest):
         super().__init__()
 
     def process_video(self, video_path, envergure):
-        print(video_path)
+
         cap = cv2.VideoCapture(video_path)
-        print(cap)
         if not cap.isOpened():
             print("Erreur : impossible d'ouvrir la vidéo")
             return
@@ -87,7 +86,6 @@ class LeftFlexionTest(FlexionTest):
                 distance_pixels = np.sqrt((majeur_gauche.y - position_pied_gauche_frame1.y) ** 2)
                 distance_cm = (distance_pixels * conversion_factor) - 1
                 self.distance_doigts_Pieds_cm.append(distance_cm)
-                print("Distance cm: ", distance_cm)
                 self.positions_moyennes_majeurs.append(majeur_gauche)
 
             frame_count += 1

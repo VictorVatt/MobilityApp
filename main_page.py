@@ -38,7 +38,7 @@ class MainPage:
         for patient in patients:
             email_patient = patient.id  # L'ID du document patient est son e-mail
             patient_infos = patient.to_dict()
-            infos_patients.append({"email": email_patient, "infos_perso": patient_infos})
+            infos_patients.append({"email": email_patient,"infos_perso": patient_infos, "id": self.master.user_data['localId']})
 
         return infos_patients
 
@@ -106,7 +106,14 @@ class MainPage:
                             self.write_compute_results_in_db(video["patient"], "Test flexion latéral droit", resultats)
 
                         case "Test flexion latéral gauche":
-                            print("Calcul flexion lateral gauche")
+                            patient_ref = self.db.collection('users').document(self.master.user_data['localId']).collection('patients').document(video["patient"])
+                            patient_info = patient_ref.get().to_dict()
+                            processor = LeftFlexionTest()
+
+                            distanceDP, PosPied, PosMoyenneMajeurs = processor.process_video(video["videoURL"],envergure=int(patient_info["envergure"]))
+                            resultats = {"distanceDP": distanceDP, "PosPied": PosPied,"PosMoyenneMajeurs": PosMoyenneMajeurs}
+
+                            self.write_compute_results_in_db(video["patient"], "Test flexion latéral gauche", resultats)
 
                     self.update_progress(i, length)
                     file.write(video["id"] + "\n")
