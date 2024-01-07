@@ -3,7 +3,8 @@ import customtkinter
 import threading
 from PIL import Image, ImageTk
 from firebase_admin import firestore
-from tkinter import ttk
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class TestPage:
 
@@ -13,7 +14,6 @@ class TestPage:
         self.patient_data = patient_data
         self.video_data = video_data
         self.results = self.get_tests_results_in_db()
-        print(self.results)
         self.current_video_player = None
         self.video_players = {}
         self.build_page()
@@ -34,8 +34,21 @@ class TestPage:
 
             # Création d'un VideoPlayer pour chaque vidéo
             frame = customtkinter.CTkFrame(self.master)
-            video_player = VideoPlayer(frame, self.video_data[i]['videoURL'])
+            video_player = VideoPlayer(frame, self.video_data[i]['videoURL'], self.results[tab_name])
             self.video_players[tab_name] = (frame, video_player)
+
+            fig = Figure(figsize=(5, 4), dpi=100)
+            t = range(100)
+            fig.add_subplot(111).plot(self.results[tab_name].get('distanceDP'))
+
+            # Ajout du graphique à la frame Tkinter
+            canvas = FigureCanvasTkAgg(fig, master=frame)
+            canvas.draw()
+            canvas.get_tk_widget().grid(row= 0, column=1, sticky="ne")
+
+            distance_label = customtkinter.CTkLabel(frame, text=f"Distance doigths/pieds minimale {min(self.results[tab_name].get('distanceDP'))}")
+            distance_label.grid(row=1, column=1, sticky="ne")
+
 
     def show_video(self, name):
         # Arrêter la vidéo courante
@@ -72,11 +85,12 @@ class TestPage:
         return tests_results
 
 class VideoPlayer:
-    def __init__(self, master, url):
+    def __init__(self, master, url, results):
         self.video_url = url
+        self.frame_counter = 0
         self.master = master
         self.video_capture = cv2.VideoCapture(self.video_url)
-
+        self.video_test_results = results
         self.video_label = customtkinter.CTkLabel(self.master, text="")
         self.video_label.grid(padx=5, pady=5)
         self.playing = False
@@ -89,10 +103,19 @@ class VideoPlayer:
         success, frame = self.video_capture.read()
         if success:
             frame_height = self.master.winfo_height() - 10
-            # Calculer la nouvelle largeur tout en maintenant le rapport largeur/hauteur
+
             aspect_ratio = frame.shape[1] / frame.shape[0]
             new_width = int(frame_height * aspect_ratio)
             frame = cv2.resize(frame, (new_width, frame_height), interpolation=cv2.INTER_AREA)
+
+            # Dessiner la ligne statique des pieds
+            y_pied = int(self.video_test_results["PosPied"] * frame.shape[0])
+            y_mains = int(self.video_test_results["PosMoyenneMajeurs"][self.frame_counter] * frame.shape[0])
+
+            cv2.line(frame, (0, y_pied), (frame.shape[1], y_pied), (255, 0, 0), 2)
+            cv2.line(frame, (0, y_mains), (frame.shape[1], y_mains), (255, 0, 0), 2)
+
+            self.frame_counter += 1
             if self.video_label.winfo_exists():
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
                 img = Image.fromarray(cv2image)
@@ -108,7 +131,8 @@ class VideoPlayer:
         else:
             # Si la lecture de la vidéo est terminée, rembobinez
             self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
-            self.video_label.after(33, self.play_video_loop)
+            self.frame_counter = 0
+            self.video_label.after(0, self.play_video_loop)
 
     def reset_video(self):
         """ Remettre à zéro la vidéo sans libérer la capture vidéo. """
@@ -128,3 +152,9 @@ class VideoPlayer:
         if self.thread is not None:
             self.thread.join()
             self.thread = None
+
+    def draw_line(self, frame, y):
+        cv2.line(frame, (0, y), (frame.shape[1], y), (255, 0, 0), 2)
+
+    def display_distance_value(self):
+        pass
