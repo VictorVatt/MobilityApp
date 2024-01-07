@@ -2,9 +2,8 @@ import customtkinter
 from login import LoginPage
 from main_page import MainPage
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials
 from config import config2
-
 
 class App(customtkinter.CTk):
     def __init__(self, *args, **kwargs):
@@ -14,7 +13,7 @@ class App(customtkinter.CTk):
         self.geometry("1000x650")
         self.title("DigiKineApp")
         self.iconbitmap("./assets/icone.ico")
-        self.set_grid()
+        self.set_grid(7)
         self.video_loaded = False
         self.is_authenticated = False
         self.user_data = None
@@ -40,8 +39,8 @@ class App(customtkinter.CTk):
             widget.destroy()
 
 
-    def set_grid(self):
-        for i in range(7):
+    def set_grid(self, number):
+        for i in range(number):
             self.grid_columnconfigure(i, weight=1)
             self.grid_rowconfigure(i, weight=1)
 
