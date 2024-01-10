@@ -10,6 +10,7 @@ class TestPage:
 
     def __init__(self, master, patient_data, video_data):
         self.master = master
+
         self.db = firestore.client()
         self.patient_data = patient_data
         self.video_data = video_data
@@ -19,21 +20,31 @@ class TestPage:
         self.build_page()
 
     def build_page(self):
-        self.back_button = customtkinter.CTkButton(self.master, text="Retour", command=self.get_back)
+        self.page_container = customtkinter.CTkFrame(self.master)
+        self.page_container.rowconfigure(0, weight=1)  # Première ligne fine
+        self.page_container.rowconfigure(1, weight=1)  # Deuxième ligne fine
+        self.page_container.rowconfigure(2, weight=10)
+        self.page_container.columnconfigure(0, weight=1)
+        self.page_container.grid(row=0, column=0, columnspan = 7, rowspan = 7, sticky="nsew")
+
+        self.back_button = customtkinter.CTkButton(self.page_container, text="Retour", command=self.get_back)
         self.back_button.grid(row=0, column=0, sticky="nw", pady=(10, 0), padx=(10, 0))
         infos_string = f"Prénom : {self.patient_data['infos_perso'].get('prenom')} | Nom : {self.patient_data['infos_perso'].get('nom')} | Envergure :{self.patient_data['infos_perso'].get('envergure')}"
-        self.patient_infos = customtkinter.CTkLabel(self.master, text=infos_string, font=("", 24))
-        self.patient_infos.grid(row=0, column=1, columnspan=4, sticky="new")
+        self.patient_infos = customtkinter.CTkLabel( self.page_container, text=infos_string, font=("", 24))
+        self.patient_infos.grid(row=0, column=0, columnspan=4, sticky="new")
 
+        button_frame = customtkinter.CTkFrame(self.page_container)
+        button_frame.grid(row=1, column=0, sticky="new", padx= 150)
         for i in range(self.get_unique(self.video_data)):
             tab_name = self.video_data[i]["test"]
 
             # Création d'un bouton pour chaque test
-            button = customtkinter.CTkButton(self.master, text=tab_name, command=lambda name=tab_name: self.show_video(name))
-            button.grid(row=1, column=2+i, sticky="new")
+            button = customtkinter.CTkButton(button_frame, text=tab_name, command=lambda name=tab_name: self.show_video(name))
+            button_frame.columnconfigure(tuple(range(self.get_unique(self.video_data))), weight=1)
+            button.grid(row=0, column=i, padx=5, pady=5)
 
             # Création d'un VideoPlayer pour chaque vidéo
-            frame = customtkinter.CTkFrame(self.master)
+            frame = customtkinter.CTkFrame(self.page_container)
             video_player = VideoPlayer(frame, self.video_data[i]['videoURL'], self.results[tab_name])
             self.video_players[tab_name] = (frame, video_player)
 
@@ -44,10 +55,9 @@ class TestPage:
             # Ajout du graphique à la frame Tkinter
             canvas = FigureCanvasTkAgg(fig, master=frame)
             canvas.draw()
-            canvas.get_tk_widget().grid(row= 0, column=1, sticky="ne")
+            canvas.get_tk_widget().grid(row= 0, column=0, sticky="ne")
 
-            distance_label = customtkinter.CTkLabel(frame, text=f"Distance doigths/pieds minimale {min(self.results[tab_name].get('distanceDP'))}")
-            distance_label.grid(row=1, column=1, sticky="ne")
+            distance_label = DistanceCard(frame, str(min(self.results[tab_name].get('distanceDP'))))
 
 
     def show_video(self, name):
@@ -158,3 +168,19 @@ class VideoPlayer:
 
     def display_distance_value(self):
         pass
+
+
+
+class DistanceCard(customtkinter.CTkFrame):
+    def __init__(self, master, text):
+        super(DistanceCard, self).__init__(master)
+        self.master = master
+        self.text = text
+        self.build_card()
+
+    def build_card(self):
+        card_test = customtkinter.CTkLabel(self.master, text=self.text)
+        card_test.grid(row = 0, column=1)
+    def set_grid(self):
+        self.master.columnconfigure(0, weight=1)
+        self.master.columnconfigure(1, weight=1)

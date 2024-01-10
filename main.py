@@ -10,7 +10,7 @@ class App(customtkinter.CTk):
         super().__init__(*args, **kwargs)
         self.cred = credentials.Certificate(config2)
         firebase_admin.initialize_app(self.cred)
-        self.geometry("1000x650")
+        self.geometry("1200x850")
         self.title("DigiKineApp")
         self.iconbitmap("./assets/icone.ico")
         self.set_grid(7)
