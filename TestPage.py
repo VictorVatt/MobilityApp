@@ -27,11 +27,12 @@ class TestPage:
         self.page_container.columnconfigure(0, weight=1)
         self.page_container.grid(row=0, column=0, columnspan = 7, rowspan = 7, sticky="nsew")
 
-        self.back_button = customtkinter.CTkButton(self.page_container, text="Retour", command=self.get_back)
-        self.back_button.grid(row=0, column=0, sticky="nw", pady=(10, 0), padx=(10, 0))
+
         infos_string = f"Prénom : {self.patient_data['infos_perso'].get('prenom')} | Nom : {self.patient_data['infos_perso'].get('nom')} | Envergure :{self.patient_data['infos_perso'].get('envergure')}"
         self.patient_infos = customtkinter.CTkLabel( self.page_container, text=infos_string, font=("", 24))
-        self.patient_infos.grid(row=0, column=0, columnspan=4, sticky="new")
+        self.patient_infos.grid(row=0, column=0, columnspan=4, sticky="sew", pady=5)
+        self.back_button = customtkinter.CTkButton(self.page_container, text="Retour", command=self.get_back)
+        self.back_button.place(x=10, y=10)
 
         button_frame = customtkinter.CTkFrame(self.page_container)
         button_frame.grid(row=1, column=0, sticky="new", padx= 150)
@@ -48,16 +49,18 @@ class TestPage:
             video_player = VideoPlayer(frame, self.video_data[i]['videoURL'], self.results[tab_name])
             self.video_players[tab_name] = (frame, video_player)
 
-            fig = Figure(figsize=(5, 4), dpi=100)
+            fig = Figure(figsize=(6, 5), dpi=100)
             t = range(100)
             fig.add_subplot(111).plot(self.results[tab_name].get('distanceDP'))
 
             # Ajout du graphique à la frame Tkinter
             canvas = FigureCanvasTkAgg(fig, master=frame)
             canvas.draw()
-            canvas.get_tk_widget().grid(row= 0, column=0, sticky="ne")
+            canvas.get_tk_widget().place(relx=0.45, rely=0.3)
 
-            distance_label = DistanceCard(frame, str(min(self.results[tab_name].get('distanceDP'))))
+            distance_label = DistanceCard(frame, str(round(min(self.results[tab_name].get('distanceDP')), 2)))
+            distance_label.place(x=500, y=30)
+
 
 
     def show_video(self, name):
@@ -68,7 +71,7 @@ class TestPage:
 
         # Afficher la nouvelle vidéo
         frame, video_player = self.video_players[name]
-        frame.grid(row=2, column=0, columnspan = 7, rowspan=6, sticky="NSEW", padx=5, pady=(10, 5 ))
+        frame.grid(row=2, column=0, columnspan = 7, rowspan=1, sticky="NSEW", padx=5, pady=(10, 5 ))
         video_player.reset_video()
         video_player.start_video()
         self.current_video_player = (frame, video_player)
@@ -173,14 +176,26 @@ class VideoPlayer:
 
 class DistanceCard(customtkinter.CTkFrame):
     def __init__(self, master, text):
-        super(DistanceCard, self).__init__(master)
+        super(DistanceCard, self).__init__(master, fg_color="white")
+        self.image_path = "./assets/icone_distance.png"
         self.master = master
         self.text = text
         self.build_card()
 
     def build_card(self):
-        card_test = customtkinter.CTkLabel(self.master, text=self.text)
-        card_test.grid(row = 0, column=1)
+        image = Image.open(self.image_path)
+        image = image.resize((100, 100))  # Redimensionner si nécessaire
+        photo = ImageTk.PhotoImage(image)
+
+        # Créer un label pour l'image
+        image_label = customtkinter.CTkLabel(self, image=photo, text="")
+        image_label.image = photo  # Conserver une référence pour éviter le garbage collection
+        image_label.grid(row=0, column=0, padx=10, pady=10)
+
+        card_test = customtkinter.CTkLabel(self, text=f"{self.text} cm", font=("", 35), text_color="green")
+        card_test.grid(row=0, column=1, padx=10, pady=10)
+
+        self.configure(corner_radius=10)
     def set_grid(self):
         self.master.columnconfigure(0, weight=1)
-        self.master.columnconfigure(1, weight=1)
+        self.master.columnconfigure(1, weight=2)
