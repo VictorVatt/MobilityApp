@@ -4,6 +4,7 @@ import numpy as np
 
 class FlexionTest:
     def __init__(self):
+        self.frame_count = 0
         self.mp_holistic = mp.solutions.holistic
         self.holistic = self.mp_holistic.Holistic(min_detection_confidence=0.5,
                                                   min_tracking_confidence=0.5,
@@ -18,11 +19,13 @@ class FlexionTest:
         self.distance_doigts_Pieds_cm = []
 
     def compute_distance(self, point1, point2):
-        return np.sqrt((point2.x - point1.x) ** 2 + (point2.y - point1.y) ** 2)
+        return np.sqrt((point2.x - point1.x) ** 2)
 
-    def compute_conversion_factor(self, point1, point2, envergure):
+    def compute_conversion_factor(self, point1, point2, envergure, width, length):
         distance_pixels = self.compute_distance(point1, point2)
+        ratio_aspect = width / length
         conversion_factor = envergure / distance_pixels
+        conversion_factor = conversion_factor * ratio_aspect
         return conversion_factor
 
     def compute_mean_postion(self, point1, point2):
@@ -34,29 +37,28 @@ class FlexionTest:
         if not cap.isOpened():
             print("Erreur : impossible d'ouvrir la vidéo")
             return
-        frame_count = 0
+
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
                 break
-            frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image.flags.writeable = True
 
             results = self.holistic.process(image)
-
-            if frame_count == 0 and results.left_hand_landmarks and results.right_hand_landmarks:
+            width, height, _ = image.shape
+            if self.frame_count == 0 and results.left_hand_landmarks and results.right_hand_landmarks:
                 # Compute conversion factor from envergure length (fingers distance Tpose)
                 majeur_gauche = results.left_hand_landmarks.landmark[12]
                 majeur_droit = results.right_hand_landmarks.landmark[12]
-                conversion_factor = self.compute_conversion_factor(majeur_gauche, majeur_droit, envergure)
+                conversion_factor = self.compute_conversion_factor(majeur_gauche, majeur_droit, envergure, width, height)
 
                 pied_gauche = results.pose_landmarks.landmark[self.mp_holistic.PoseLandmark.LEFT_FOOT_INDEX]
                 pied_droit = results.pose_landmarks.landmark[self.mp_holistic.PoseLandmark.RIGHT_FOOT_INDEX]
                 self.positions_pied = self.compute_mean_postion(pied_gauche, pied_droit)
 
             if results.left_hand_landmarks and results.right_hand_landmarks:
-                width, height, _ = image.shape
+
                 majeur_gauche = results.left_hand_landmarks.landmark[12]
                 majeur_droit = results.right_hand_landmarks.landmark[12]
                 #x_moyen = int((majeur_gauche.x + majeur_droit.x) / 2 * height)
@@ -69,7 +71,7 @@ class FlexionTest:
                 self.distance_doigts_Pieds_cm.append(distance_cm)
                 self.positions_moyennes_majeurs.append(position_moyenne)
 
-
+            self.frame_count += 1
         self.positions_moyennes_majeurs = [coord_frame[1] for coord_frame in self.positions_moyennes_majeurs]
         cap.release()
-        return self.distance_doigts_Pieds_cm, self.positions_pied.y, self.positions_moyennes_majeurs
+        return self.distance_doigts_Pieds_cm, self.positions_pied[1], self.positions_moyennes_majeurs

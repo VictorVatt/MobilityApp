@@ -49,14 +49,30 @@ class TestPage:
             video_player = VideoPlayer(frame, self.video_data[i]['videoURL'], self.results[tab_name])
             self.video_players[tab_name] = (frame, video_player)
 
-            fig = Figure(figsize=(6, 5), dpi=100)
+            fig = Figure(figsize=(7, 5), dpi=100)
             t = range(100)
-            fig.add_subplot(111).plot(self.results[tab_name].get('distanceDP'))
+            ax = fig.add_subplot(111)
+
+            num_frames = len(self.results[tab_name].get("distanceDP"))
+            sampling_rate = 30
+            time_axis = [frame / sampling_rate for frame in range(num_frames)]
+
+            ax.plot(time_axis,self.results[tab_name].get('distanceDP'), color="#2734f2")
+            ax.set_title("Evolution de la distance doigts/pieds", fontsize=18, color="green")
+            ax.set_ylabel("Distance (cm)", color='green')
+            ax.set_xlabel("Temps (sec)", color='green')
+            ax.grid = False
+            ax.spines["top"].set_color("green")
+            ax.spines["right"].set_color("green")
+            ax.xaxis.label.set_color("green")
+            ax.yaxis.label.set_color("green")
+            ax.tick_params(axis='x', colors='green')
+            ax.tick_params(axis='y', colors='green')
 
             # Ajout du graphique à la frame Tkinter
             canvas = FigureCanvasTkAgg(fig, master=frame)
             canvas.draw()
-            canvas.get_tk_widget().place(relx=0.45, rely=0.3)
+            canvas.get_tk_widget().place(relx=0.45, rely=0.4)
 
             distance_label = DistanceCard(frame, str(round(min(self.results[tab_name].get('distanceDP')), 2)))
             distance_label.place(x=500, y=30)
@@ -120,13 +136,6 @@ class VideoPlayer:
             aspect_ratio = frame.shape[1] / frame.shape[0]
             new_width = int(frame_height * aspect_ratio)
             frame = cv2.resize(frame, (new_width, frame_height), interpolation=cv2.INTER_AREA)
-
-            # Dessiner la ligne statique des pieds
-            y_pied = int(self.video_test_results["PosPied"] * frame.shape[0])
-            y_mains = int(self.video_test_results["PosMoyenneMajeurs"][self.frame_counter] * frame.shape[0])
-
-            cv2.line(frame, (0, y_pied), (frame.shape[1], y_pied), (255, 0, 0), 2)
-            cv2.line(frame, (0, y_mains), (frame.shape[1], y_mains), (255, 0, 0), 2)
 
             self.frame_counter += 1
             if self.video_label.winfo_exists():
